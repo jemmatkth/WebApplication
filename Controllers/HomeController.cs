@@ -28,7 +28,7 @@ namespace WebApplication.Controllers
 
         public IActionResult Index()
         {
-            var userId = _userManager.GetUserId(User);
+            var user = _userManager.GetUserAsync(User);
             var userIndexModel = new UserIndexModel();
 
             return View();
