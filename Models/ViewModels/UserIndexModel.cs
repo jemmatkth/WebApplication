@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
+using WebApplication.Areas.Identity.Data;
 
-namespace WebApplication.Areas.Identity.Data
+namespace WebApplication.Models.ViewModels
 {
-    // Add profile data for application users by adding properties to the WebApplicationUser class
-    public class WebApplicationUser : IdentityUser
+    public class UserIndexModel
     {
+        public WebApplicationUser user { get; }
         public virtual DateTime? LastLoginTime { get; set; }
         public virtual int? NumberOfLogins { get; set; }
     }

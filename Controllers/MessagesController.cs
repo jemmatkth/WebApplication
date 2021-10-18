@@ -9,9 +9,11 @@ using WebApplication.Models;
 using WebApplication.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using WebApplication.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication.Controllers
 {
+	[Authorize]
 	public class MessagesController : Controller
 	{
 		private readonly DbContect _context;
