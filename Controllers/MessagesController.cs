@@ -9,9 +9,11 @@ using WebApplication.Models;
 using WebApplication.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using WebApplication.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication.Controllers
 {
+	[Authorize]
 	public class MessagesController : Controller
 	{
 		private readonly DbContect _context;
@@ -29,15 +31,14 @@ namespace WebApplication.Controllers
 		public async Task<IActionResult> Index(int? selectedMessage)
 		{
 			var userId = _userManager.GetUserId(User);
-			var viewModel = new MessageViewModel();
-
-			viewModel.Messages = await _context.Message.Where(i => i.SentToId == userId).Where(i => i.Status == false).OrderBy(i => i.CreatedByUsername).ToListAsync();
-
+			var viewModel = new MessageViewModel();			
+			viewModel.Messages = await _context.Message.Where(i => i.SentToId == userId).OrderBy(i => i.CreatedByUsername).ToListAsync();
+			
+			viewModel.numberOfTotalMessages = viewModel.Messages.Count();
 			if (viewModel.Messages != null)
 			{
 				if (selectedMessage != null)
 				{
-					ViewData["MessageId"] = selectedMessage.Value;
 					viewModel.Message = viewModel.Messages.Where(i => i.Id == selectedMessage.Value).Single();
 					var message = _context.Message.Where(i => i.Id == viewModel.Message.Id).Single();
 					message.Status = true;
@@ -53,6 +54,7 @@ namespace WebApplication.Controllers
 			return View(viewModel);
 		}
 
+	
 
 		// POST: Messages/Create
 		// To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -97,33 +99,26 @@ namespace WebApplication.Controllers
 		}
 
 
-		// GET: Messages/Delete/5
-		public async Task<IActionResult> Delete(int? id)
-		{
-			if (id == null)
-			{
-				return NotFound();
-			}
-
-			var message = await _context.Message
-				.FirstOrDefaultAsync(m => m.Id == id);
-			if (message == null)
-			{
-				return NotFound();
-			}
-
-			return View(message);
-		}
 
 		// POST: Messages/Delete/5
 		[HttpPost, ActionName("Delete")]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteConfirmed(int id)
 		{
+			Console.WriteLine("delete post " + id);
+
 			var message = await _context.Message.FindAsync(id);
-			_context.Message.Remove(message);
-			await _context.SaveChangesAsync();
-			return RedirectToAction(nameof(Index));
+			if (message != null)
+			{
+				_context.Message.Remove(message);
+				await _context.SaveChangesAsync();
+				return RedirectToAction(nameof(Index));
+			}
+			else
+			{
+				return NotFound();
+			}
+			
 		}
 
 		private bool MessageExists(int id)

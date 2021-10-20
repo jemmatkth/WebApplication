@@ -1,8 +1,17 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model WebApplication.Models.ViewModels.HomeViewModel;
+@{
+	ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+	<h1 class="display-4">Welcome</h1>
+	@if (Model.numberLoggedInLastMonth >0)
+	{
+		<p>Last Logged In: @Model.LastLoggedIn </p>
+		<p>Number of logged in: @Model.numberLoggedInLastMonth</p>
+	}
+	else
+	{
+		<p>Welcome new user!</p>
+	}
 </div>

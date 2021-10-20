@@ -10,5 +10,6 @@ namespace WebApplication.Models.ViewModels
     {
         public List<Message> Messages { get; set; }
         public Message Message { get; set; }
+        public int numberOfTotalMessages { get; set; }
     }
 }
