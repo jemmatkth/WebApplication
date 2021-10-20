@@ -3,6 +3,11 @@
 	ViewData["Title"] = "Home Page";
 }
 
+@inject SignInManager<WebApplicationUser> SignInManager
+@inject UserManager<WebApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
 <div class="text-center">
 	<h1 class="display-4">Welcome</h1>
 	@if (Model.numberLoggedInLastMonth >0)
@@ -15,3 +20,4 @@
 		<p>Welcome new user!</p>
 	}
 </div>
+}
