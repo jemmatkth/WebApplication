@@ -12,6 +12,12 @@ public class DbContect : DbContext
 	{
 	}
 
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	{
+		modelBuilder.Entity<MessageStatus>().HasKey(p => new { p.Id, p.UserId });
+	}
+
 	public DbSet<WebApplication.Models.Message> Message { get; set; }
 	public DbSet<Tracking> Tracking { get; set; }
+	public DbSet<MessageStatus> Status { get; set; }
 }

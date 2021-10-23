@@ -18,13 +18,13 @@ namespace WebApplication.Controllers
 	{
 		private readonly DbContect _context;
 		private readonly UserManager<WebApplicationUser> _userManager;
-
+		private MessageStatus _status;
 
 		public MessagesController(DbContect context, UserManager<WebApplicationUser> userManager)
 		{
 			_context = context;
 			_userManager = userManager;
-
+			//_status = new MessageStatus();
 		}
 
 		// GET: Messages
@@ -33,7 +33,24 @@ namespace WebApplication.Controllers
 			var userId = _userManager.GetUserId(User);
 			var viewModel = new MessageViewModel();			
 			viewModel.Messages = await _context.Message.Where(i => i.SentToId == userId).OrderBy(i => i.CreatedByUsername).ToListAsync();
+
+			MessageStatus previousStatus = await _context.Status.Where(i => i.UserId == userId).FirstOrDefaultAsync();
 			
+			if(previousStatus != null)
+			{
+				_status = previousStatus;
+			}
+			else
+			{
+				_status = new MessageStatus();
+				_status.UserId = userId;
+				_status.numberOfDeletedMessages = 0;
+				_status.numberOfReadMessages = 0;
+				_context.Status.Add(_status);
+				await _context.SaveChangesAsync();
+			}
+			viewModel.Status = _status;
+
 			viewModel.numberOfTotalMessages = viewModel.Messages.Count();
 			if (viewModel.Messages != null)
 			{
@@ -41,9 +58,15 @@ namespace WebApplication.Controllers
 				{
 					viewModel.Message = viewModel.Messages.Where(i => i.Id == selectedMessage.Value).Single();
 					var message = _context.Message.Where(i => i.Id == viewModel.Message.Id).Single();
-					message.Status = true;
-					_context.Update(message);
-					await _context.SaveChangesAsync();
+
+					if (viewModel.Message.Status == false)
+					{
+						_status.numberOfReadMessages++;
+						_context.Update(_status);
+						message.Status = true;
+						_context.Update(message);
+						await _context.SaveChangesAsync();
+					}
 				}
 			}
 			else
@@ -103,13 +126,18 @@ namespace WebApplication.Controllers
 		// POST: Messages/Delete/5
 		[HttpPost, ActionName("Delete")]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeleteConfirmed(int id)
+		public async Task<IActionResult> DeleteConfirmed(int messageId, int statusId)
 		{
-			Console.WriteLine("delete post " + id);
-
-			var message = await _context.Message.FindAsync(id);
+			Console.WriteLine($"Message: {messageId}  Status: {statusId}");
+			
+			var message = await _context.Message.FindAsync(messageId);
 			if (message != null)
 			{
+				var userId =  _userManager.GetUserId(User);
+				var previousStatus = await _context.Status.Where(i => i.Id == statusId).Where(i => i.UserId == userId).FirstOrDefaultAsync();
+				previousStatus.numberOfDeletedMessages++;
+				
+				_context.Update(previousStatus);
 				_context.Message.Remove(message);
 				await _context.SaveChangesAsync();
 				return RedirectToAction(nameof(Index));

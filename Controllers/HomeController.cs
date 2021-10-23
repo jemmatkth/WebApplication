@@ -33,15 +33,14 @@ namespace WebApplication.Controllers
         {
             var viewModel = new HomeViewModel();
             var userId = _userManager.GetUserId(User);
-
-            var trackings = await _context.Tracking.Where(i => i.UserId.Equals(userId)).ToListAsync();
+            DateTime span = DateTime.Now.AddDays(-30);
+            
+            var trackings = await _context.Tracking.Where(i => i.UserId.Equals(userId)).Where(i=>i.Logged>=span).ToListAsync();
 			if (trackings.Count()>0)
 			{
                 viewModel.numberLoggedInLastMonth = trackings.Count();
                 viewModel.LastLoggedIn = trackings.LastOrDefault().Logged;
             }
-           
-
             return View(viewModel);
         }
 
