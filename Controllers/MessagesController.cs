@@ -35,7 +35,16 @@ namespace WebApplication.Controllers
 			viewModel.Messages = await _context.Message.Where(i => i.SentToId == userId).OrderBy(i => i.CreatedByUsername).ToListAsync();
 
 			MessageStatus previousStatus = await _context.Status.Where(i => i.UserId == userId).FirstOrDefaultAsync();
-			
+
+			if(selectedMessage != null)
+            {
+				var matches = viewModel.Messages.Where(p => p.Id == selectedMessage);
+				if (!matches.Any())
+				{
+					return NotFound();
+				}
+			}
+
 			if(previousStatus != null)
 			{
 				_status = previousStatus;
@@ -76,7 +85,6 @@ namespace WebApplication.Controllers
 
 			return View(viewModel);
 		}
-
 	
 
 		// POST: Messages/Create
@@ -129,11 +137,12 @@ namespace WebApplication.Controllers
 		public async Task<IActionResult> DeleteConfirmed(int messageId, int statusId)
 		{
 			Console.WriteLine($"Message: {messageId}  Status: {statusId}");
-			
+
+			var userId = _userManager.GetUserId(User);
+
 			var message = await _context.Message.FindAsync(messageId);
-			if (message != null)
+			if (message != null || message.CreatedById != userId)
 			{
-				var userId =  _userManager.GetUserId(User);
 				var previousStatus = await _context.Status.Where(i => i.Id == statusId).Where(i => i.UserId == userId).FirstOrDefaultAsync();
 				previousStatus.numberOfDeletedMessages++;
 				
@@ -149,9 +158,9 @@ namespace WebApplication.Controllers
 			
 		}
 
-		private bool MessageExists(int id)
-		{
-			return _context.Message.Any(e => e.Id == id);
-		}
+		//private bool MessageExists(int id)
+		//{
+		//	return _context.Message.Any(e => e.Id == id);
+		//}
 	}
 }
